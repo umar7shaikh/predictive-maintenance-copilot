@@ -63,20 +63,50 @@ def _split_text(text: str, chunk_size: int = 800, overlap: int = 120) -> list[st
     return chunks
 
 
+# A heading looks like "2. Vibration Thresholds" / "3.1 Relief Valve" or a short
+# ALL-CAPS / Title-Case line. Used to tag chunks with the section they belong to.
+_NUMBERED_HEADING = re.compile(r"(?m)^\s*(\d+(?:\.\d+)*\.?\s+[A-Z][^\n]{2,70})\s*$")
+_HEADING_INLINE = re.compile(r"(\d+(?:\.\d+)*\.?\s+[A-Z][A-Za-z][^\n]{2,70}?)(?=\s+[A-Z][a-z]|\s*$)")
+
+
+def _segment_by_heading(text: str, current: str | None):
+    """Split a page into (section_title, body) segments, carrying the last-seen
+    heading across page boundaries via `current`."""
+    # Split on numbered headings, keeping the heading as a delimiter.
+    parts = re.split(_NUMBERED_HEADING, text)
+    segments: list[tuple[str | None, str]] = []
+    if parts[0].strip():
+        segments.append((current, parts[0]))
+    # parts now alternates: [pre, heading, body, heading, body, ...]
+    for i in range(1, len(parts), 2):
+        heading = parts[i].strip()
+        body = parts[i + 1] if i + 1 < len(parts) else ""
+        current = heading
+        segments.append((heading, body))
+    return segments, current
+
+
 def ingest_pdf(pdf_path: str, source_name: str) -> int:
-    """Chunk + embed a PDF into Chroma. Returns the number of chunks stored."""
+    """Chunk + embed a PDF into Chroma, tagging each chunk with its section.
+
+    Returns the number of chunks stored."""
     from pypdf import PdfReader
 
     reader = PdfReader(pdf_path)
     documents: list[str] = []
     metadatas: list[dict] = []
+    current_section: str | None = None
     for page_num, page in enumerate(reader.pages, start=1):
         text = (page.extract_text() or "").strip()
         if not text:
             continue
-        for chunk in _split_text(text):
-            documents.append(chunk)
-            metadatas.append({"source": source_name, "page": page_num})
+        segments, current_section = _segment_by_heading(text, current_section)
+        for section, body in segments:
+            for chunk in _split_text(body):
+                documents.append(chunk)
+                metadatas.append(
+                    {"source": source_name, "page": page_num, "section": section or ""}
+                )
 
     if not documents:
         return 0
@@ -108,6 +138,7 @@ def retrieve(query: str, k: int = 4) -> list[dict]:
             {
                 "source": meta.get("source", "manual"),
                 "page": meta.get("page"),
+                "section": meta.get("section") or None,
                 "snippet": doc.strip()[:500],
                 "score": round(1.0 / (1.0 + dist), 3) if dist is not None else None,
             }
@@ -140,6 +171,7 @@ def format_context(chunks: list[dict]) -> str:
     """Render retrieved chunks into a prompt-ready block."""
     blocks = []
     for c in chunks:
+        section = f" §{c['section']}" if c.get("section") else ""
         page = f", p.{c['page']}" if c.get("page") else ""
-        blocks.append(f"[{c['source']}{page}] {c['snippet']}")
+        blocks.append(f"[{c['source']}{section}{page}] {c['snippet']}")
     return "\n\n".join(blocks)

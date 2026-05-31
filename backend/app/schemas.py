@@ -94,6 +94,8 @@ class Citation(BaseModel):
     source: str
     snippet: str
     page: int | None = None
+    section: str | None = None
+    score: float | None = None
 
 
 class RecommendationOut(BaseModel):

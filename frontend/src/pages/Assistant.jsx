@@ -95,12 +95,19 @@ export default function Assistant() {
                   )}
                   <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
                   {m.citations?.length > 0 && (
-                    <div className="mt-2 space-y-1 border-t border-hair pt-2 text-xs text-muted">
+                    <div className="mt-2 space-y-1.5 border-t border-hair pt-2 text-xs text-muted">
                       {m.citations.map((c, j) => (
-                        <p key={j}>
-                          <span className="mono text-faint">[{c.source}{c.page ? `, p.${c.page}` : ""}]</span>{" "}
-                          {c.snippet?.slice(0, 140)}…
-                        </p>
+                        <div key={j}>
+                          <div className="mono flex flex-wrap items-center gap-1.5 text-[10px] text-faint">
+                            <span className="text-steel">{c.source}</span>
+                            {c.section && <span className="rounded bg-panel2 px-1 text-fg">§{c.section}</span>}
+                            {c.page && <span>p.{c.page}</span>}
+                            {c.score != null && (
+                              <span className="ml-auto text-faint">rel {Math.round(c.score * 100)}</span>
+                            )}
+                          </div>
+                          <p className="mt-0.5 leading-relaxed">{c.snippet?.slice(0, 160)}…</p>
+                        </div>
                       ))}
                     </div>
                   )}
