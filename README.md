@@ -83,7 +83,16 @@ App at http://localhost:5173
 
 ## Run / stop (all services)
 
-Run each in its own terminal. Backend first; the rest are independent.
+**One command** (recommended) — from the project root, double-click `start_all.bat`
+or run:
+
+```powershell
+.\start_all.ps1            # backend + frontend + mlflow (each in its own window)
+.\start_all.ps1 -Celery    # also start the Celery worker
+.\stop_all.ps1             # stop them all (leaves Postgres + Redis running)
+```
+
+Or start each one manually in its own terminal (backend first):
 
 | Service | Start (from the folder shown) | Stop |
 |---|---|---|
