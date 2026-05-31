@@ -5,6 +5,7 @@ import { useAuth } from "../lib/auth.jsx";
 const links = [
   { to: "/", label: "Fleet", end: true },
   { to: "/upload", label: "Data" },
+  { to: "/tuning", label: "Detection" },
   { to: "/assistant", label: "Copilot" },
   { to: "/logs", label: "Log" },
 ];

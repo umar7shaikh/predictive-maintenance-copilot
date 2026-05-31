@@ -24,9 +24,11 @@ export default function MachineDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [detail, setDetail] = useState(null);
+  const [forecast, setForecast] = useState([]);
 
   useEffect(() => {
     api.get(`/machines/${id}`).then((r) => setDetail(r.data));
+    api.get(`/machines/${id}/forecast`).then((r) => setForecast(r.data));
   }, [id]);
 
   async function deleteMachine() {
@@ -66,6 +68,17 @@ export default function MachineDetail() {
           </Link>
         </div>
       </div>
+
+      {forecast.length > 0 && (
+        <Card className="mb-4">
+          <CardHeader title="Trend forecast" subtitle="Linear projection to each parameter's service limit" />
+          <div className="grid grid-cols-1 gap-px bg-hair sm:grid-cols-3">
+            {forecast.map((f) => (
+              <ForecastTile key={f.parameter} f={f} />
+            ))}
+          </div>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {PARAMS.map((p) => (
@@ -157,6 +170,35 @@ export default function MachineDetail() {
           </table>
         </div>
       </Card>
+    </div>
+  );
+}
+
+const FC_STYLE = {
+  exceeded: { tone: "text-crit", label: "LIMIT EXCEEDED" },
+  approaching: { tone: "text-warn", label: "APPROACHING" },
+  stable: { tone: "text-steel", label: "STABLE" },
+};
+
+function ForecastTile({ f }) {
+  const s = FC_STYLE[f.status] || FC_STYLE.stable;
+  return (
+    <div className="bg-panel p-4">
+      <div className="flex items-center justify-between">
+        <span className="text-sm capitalize text-fg">{f.parameter}</span>
+        <span className={`mono text-[10px] font-semibold uppercase tracking-wider ${s.tone}`}>{s.label}</span>
+      </div>
+      <div className="mono mt-2 text-2xl text-fg">
+        {f.current}
+        <span className="ml-1 text-xs text-faint">/ {f.limit} {f.unit}</span>
+      </div>
+      <div className="mono mt-1 text-[11px] text-faint">
+        {f.status === "exceeded"
+          ? "above service limit now"
+          : f.eta_days != null && f.status === "approaching"
+            ? `crosses limit in ~${f.eta_days} days`
+            : `Δ ${f.slope_per_day >= 0 ? "+" : ""}${f.slope_per_day}/day`}
+      </div>
     </div>
   );
 }
