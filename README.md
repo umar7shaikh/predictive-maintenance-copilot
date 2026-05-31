@@ -111,14 +111,52 @@ Get-NetTCPConnection -State Listen -LocalPort 8000 | ForEach-Object { Stop-Proce
 
 ## Phase 4 — async jobs + distributed ETL (optional)
 
-The app runs fully without these; they make the stack production-faithful.
+Two operations in the platform are slow: processing an uploaded sensor CSV (ETL +
+anomaly detection) and embedding a PDF manual. By default these run in-process via
+FastAPI BackgroundTasks, which is fine for a single user on modest files. Celery and
+Spark exist to handle the same work as the system grows.
 
-- **Celery + Redis** — set `USE_CELERY=true` in `.env`, start the worker
-  (`scripts\start_worker.ps1`), and uploads are processed by the worker instead of
-  in-process BackgroundTasks. Requires Redis on `:6379`.
-- **PySpark ETL** — set `ETL_ENGINE=spark` in `.env` (with `JAVA_HOME` + `HADOOP_HOME`
-  pointing at a JDK and a winutils folder). The pipeline then runs the same transforms
-  on Spark; results are identical to the pandas engine. Default stays `pandas`.
+### Celery + Redis — running heavy jobs outside the web server
+
+By default, processing happens inside the API process. If many large files are uploaded
+at once, that work competes with live requests and is lost if the server restarts.
+
+With Celery enabled, the API instead places a job on a **Redis** queue and returns
+immediately; separate **worker** processes (which can run on other machines) pick jobs
+off the queue and do the work. This keeps the API responsive, lets processing scale by
+adding workers, and makes jobs durable — a job survives a worker restart and can retry
+on failure.
+
+Enable it: set `USE_CELERY=true` in `.env`, start the worker (`scripts\start_worker.ps1`),
+and uploads are handled by the worker instead of BackgroundTasks. Requires Redis on `:6379`.
+
+### PySpark — processing data too large for one machine
+
+pandas loads the whole dataset into one machine's memory, which is ideal up to a few GB.
+A real fleet (hundreds of machines sampling continuously) can produce datasets far larger
+than that. Spark splits the data across partitions and runs the **same** transforms —
+rolling averages, rate-of-change, z-scores — in parallel, so it can process data that
+would not fit in memory.
+
+`SparkETLEngine` implements the same `ETLEngine` interface as the pandas engine, so
+switching is a config change with no logic rewrite, and it produces identical results
+(verified: 960 rows → 15 anomalies, same severities).
+
+Enable it: set `ETL_ENGINE=spark` in `.env` (with `JAVA_HOME` + `HADOOP_HOME` pointing at
+a JDK and a winutils folder). Default stays `pandas`.
+
+### Local vs. production
+
+These are optional locally because the demo dataset is small; they are how the same
+design scales in production. This maps directly to the Azure target in
+[`docs/architecture.md`](docs/architecture.md): BackgroundTasks → Azure Functions,
+Redis → Azure Cache for Redis, pandas → Spark on Azure Databricks.
+
+| Concern | Local / demo (default) | Production |
+|---|---|---|
+| Heavy jobs | FastAPI BackgroundTasks | Celery workers |
+| Job queue | — | Redis / Azure Cache for Redis |
+| ETL engine | pandas | Spark on Azure Databricks |
 
 ## Demo flow
 
