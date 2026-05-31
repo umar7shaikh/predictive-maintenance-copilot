@@ -8,6 +8,17 @@ manuals, and delivers structured maintenance recommendations in plain English.
 > Built and runs **natively on Windows** (no Docker/WSL required). The architecture
 > maps cleanly onto Azure for production — see [`docs/architecture.md`](docs/architecture.md).
 
+## Screenshots
+
+**Fleet dashboard** — fleet health at a glance, color-coded by severity with live
+readouts and trend sparklines per machine.
+
+![Fleet dashboard](docs/images/fleet-dashboard.png)
+
+**AI Copilot** — grounded, cited maintenance recommendations from the equipment manuals.
+
+![AI Copilot](docs/images/copilot.png)
+
 ## Features
 
 1. **Sensor data analysis** — upload a CSV of time-series readings (temperature,
