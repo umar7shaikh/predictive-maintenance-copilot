@@ -37,6 +37,18 @@ class Settings(BaseSettings):
     zscore_threshold: float = 3.0
     rolling_window: int = 10
 
+    # --- Phase 4: async jobs + Spark ---
+    # When true, uploads dispatch to Celery; otherwise FastAPI BackgroundTasks.
+    use_celery: bool = False
+    celery_broker_url: str = "redis://localhost:6379/0"
+    celery_result_backend: str = "redis://localhost:6379/1"
+
+    # ETL engine: "pandas" (default) or "spark".
+    etl_engine: str = "pandas"
+    # Set so PySpark finds the JVM + Hadoop winutils on native Windows.
+    java_home: str = ""
+    hadoop_home: str = ""
+
     # CORS
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 

@@ -25,7 +25,7 @@ def process_dataset(dataset_id: int, csv_path: str) -> None:
         dataset.status = DatasetStatus.PROCESSING
         db.commit()
 
-        engine = get_engine("pandas")
+        engine = get_engine(settings.etl_engine)
         raw = engine.extract(csv_path)
         transformed = engine.transform(raw)
         summary = engine.load(transformed, dataset_id, db)
@@ -47,7 +47,7 @@ def process_dataset(dataset_id: int, csv_path: str) -> None:
         params = {
             "zscore_threshold": threshold,
             "rolling_window": settings.rolling_window,
-            "engine": "pandas",
+            "engine": settings.etl_engine,
         }
         run_id = log_detection_run(params, metrics)
 

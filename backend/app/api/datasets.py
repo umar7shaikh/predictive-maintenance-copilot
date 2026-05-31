@@ -9,7 +9,7 @@ from app.db import get_db
 from app.models import Anomaly, Dataset, DatasetStatus, EtlRun, Machine, SensorReading, User
 from app.schemas import DatasetOut
 from app.security import get_current_user
-from app.services.pipeline import process_dataset
+from app.services.jobs import dispatch_dataset
 
 router = APIRouter(prefix="/api/datasets", tags=["datasets"])
 
@@ -36,7 +36,7 @@ def upload_csv(
     db.commit()
     db.refresh(dataset)
 
-    background.add_task(process_dataset, dataset.id, stored)
+    dispatch_dataset(background, dataset.id, stored)
     return dataset
 
 

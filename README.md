@@ -81,12 +81,35 @@ npm run dev
 
 App at http://localhost:5173
 
-### 4. MLflow UI (optional)
+## Run / stop (all services)
+
+Run each in its own terminal. Backend first; the rest are independent.
+
+| Service | Start (from the folder shown) | Stop |
+|---|---|---|
+| **Backend** (`backend/`) | `.\.venv\Scripts\python.exe -m uvicorn app.main:app --port 8000` | Ctrl+C |
+| **Frontend** (`frontend/`) | `npm run dev` | Ctrl+C |
+| **MLflow server** (`backend/`) | `.\scripts\start_mlflow.ps1` → http://localhost:5000 | Ctrl+C |
+| **Celery worker** (`backend/`, optional) | `.\scripts\start_worker.ps1` | Ctrl+C |
+
+Force-stop by port (PowerShell), e.g. the backend:
 
 ```powershell
-cd backend
-.\.venv\Scripts\mlflow.exe ui --backend-store-uri ./mlruns
+Get-NetTCPConnection -State Listen -LocalPort 8000 | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
 ```
+
+(Ports: backend 8000, frontend 5173, MLflow 5000, Redis 6379, Postgres 5433.)
+
+## Phase 4 — async jobs + distributed ETL (optional)
+
+The app runs fully without these; they make the stack production-faithful.
+
+- **Celery + Redis** — set `USE_CELERY=true` in `.env`, start the worker
+  (`scripts\start_worker.ps1`), and uploads are processed by the worker instead of
+  in-process BackgroundTasks. Requires Redis on `:6379`.
+- **PySpark ETL** — set `ETL_ENGINE=spark` in `.env` (with `JAVA_HOME` + `HADOOP_HOME`
+  pointing at a JDK and a winutils folder). The pipeline then runs the same transforms
+  on Spark; results are identical to the pandas engine. Default stays `pandas`.
 
 ## Demo flow
 
@@ -104,5 +127,5 @@ cd backend
 - **No Groq key?** Set `LLM_STUB_MODE=true` (or leave `GROQ_API_KEY` blank) — the app
   returns deterministic severity-based verdicts so the demo still works.
 - **RAG model download** — first PDF upload downloads the MiniLM ONNX model (~80MB).
-- Roadmap (phases 4–5: Celery/Redis, PySpark engine, Docker, CI) in
-  [`docs/architecture.md`](docs/architecture.md).
+- Phase 4 (Celery/Redis async jobs + PySpark engine) is implemented and optional; see
+  above. Remaining roadmap (Docker, CI) in [`docs/architecture.md`](docs/architecture.md).

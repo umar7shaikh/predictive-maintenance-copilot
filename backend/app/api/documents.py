@@ -58,7 +58,9 @@ def upload_pdf(
     db.commit()
     db.refresh(doc)
 
-    background.add_task(_ingest_document, doc.id, stored, file.filename)
+    from app.services.jobs import dispatch_document
+
+    dispatch_document(background, doc.id, stored, file.filename)
     return doc
 
 
