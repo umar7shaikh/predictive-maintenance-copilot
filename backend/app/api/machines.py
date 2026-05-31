@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.anomaly.forecast import forecast_machine
 from app.db import get_db
 from app.models import Anomaly, Machine, SensorReading, User
-from app.schemas import AnomalyOut, MachineDetail, MachineHealth, ReadingPoint
+from app.schemas import AnomalyOut, ForecastOut, MachineDetail, MachineHealth, ReadingPoint
 from app.security import get_current_user
 from app.services.fleet import machine_health
 
@@ -46,6 +47,22 @@ def machine_detail(
         readings=[ReadingPoint.model_validate(r, from_attributes=True) for r in readings],
         anomalies=[AnomalyOut.model_validate(a, from_attributes=True) for a in anomalies],
     )
+
+
+@router.get("/{machine_id}/forecast", response_model=list[ForecastOut])
+def machine_forecast(
+    machine_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)
+):
+    machine = db.get(Machine, machine_id)
+    if not machine:
+        raise HTTPException(status_code=404, detail="Machine not found")
+    readings = (
+        db.query(SensorReading)
+        .filter(SensorReading.machine_id == machine_id)
+        .order_by(SensorReading.ts.asc())
+        .all()
+    )
+    return forecast_machine(readings)
 
 
 @router.delete("/{machine_id}", status_code=204)

@@ -140,6 +140,31 @@ class MaintenanceLogUpdate(BaseModel):
     notes: str | None = None
 
 
+class RerunRequest(BaseModel):
+    method: str = "zscore"
+    threshold: float = 3.0
+    window: int = 10
+
+
+class DetectionRunOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    mlflow_run_id: str | None = None
+    params: dict | None = None
+    metrics: dict | None = None
+    created_at: datetime
+
+
+class ForecastOut(BaseModel):
+    parameter: str
+    unit: str
+    current: float
+    limit: float
+    slope_per_day: float
+    eta_days: float | None = None
+    status: str  # exceeded | approaching | stable
+
+
 class MaintenanceLogOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int

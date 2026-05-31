@@ -23,6 +23,7 @@ bcrypt==4.2.1
 pandas==2.2.3
 numpy==2.1.3
 scipy==1.14.1
+scikit-learn==1.6.0
 # mlflow-skinny gives tracking (params/metrics, file store) without the heavy
 # scikit-learn/flask/matplotlib server stack — chosen to fit constrained disk.
 mlflow-skinny==2.19.0

@@ -12,6 +12,7 @@ from app.api import (
     auth,
     chat,
     datasets,
+    detection,
     documents,
     export,
     logs,
@@ -44,5 +45,7 @@ def health():
     return {"status": "ok"}
 
 
-for module in (auth, datasets, machines, recommendations, documents, chat, logs, export, admin):
+for module in (
+    auth, datasets, machines, recommendations, documents, chat, logs, export, admin, detection
+):
     app.include_router(module.router)
