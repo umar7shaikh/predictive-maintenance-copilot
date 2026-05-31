@@ -1,0 +1,73 @@
+# Full stack in containers. Spin up everything with:  docker compose up --build
+# Then open http://localhost:5173  (API at :8000, MLflow at :5000).
+#
+# Set GROQ_API_KEY in your shell or a .env file next to this compose file for live
+# LLM answers; otherwise LLM_STUB_MODE keeps the app fully functional with stubs.
+
+x-backend-env: &backend-env
+  DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/pdm_copilot
+  SECRET_KEY: change-me-in-prod
+  CELERY_BROKER_URL: redis://redis:6379/0
+  CELERY_RESULT_BACKEND: redis://redis:6379/1
+  USE_CELERY: "true"
+  ETL_ENGINE: pandas
+  MLFLOW_TRACKING_URI: http://mlflow:5000
+  CHROMA_DIR: /data/chroma_store
+  UPLOAD_DIR: /data/uploads
+  GROQ_API_KEY: ${GROQ_API_KEY:-}
+  GROQ_MODEL: llama-3.1-8b-instant
+  LLM_STUB_MODE: ${LLM_STUB_MODE:-true}
+  CORS_ORIGINS: http://localhost:5173
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pdm_copilot
+    ports: ["5433:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  mlflow:
+    build: ./backend
+    command: mlflow server --backend-store-uri /mlruns --host 0.0.0.0 --port 5000
+    volumes: ["mlruns:/mlruns"]
+    ports: ["5000:5000"]
+
+  backend:
+    build: ./backend
+    environment: *backend-env
+    volumes: ["appdata:/data"]
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_started }
+    ports: ["8000:8000"]
+
+  worker:
+    build: ./backend
+    command: celery -A app.worker.celery_app worker --loglevel=info
+    environment: *backend-env
+    volumes: ["appdata:/data"]
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_started }
+
+  frontend:
+    build: ./frontend
+    depends_on: [backend]
+    ports: ["5173:80"]
+
+volumes:
+  pgdata:
+  mlruns:
+  appdata:

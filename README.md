@@ -1,5 +1,7 @@
 # Predictive Maintenance Copilot
 
+[![CI](https://github.com/umar7shaikh/predictive-maintenance-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/umar7shaikh/predictive-maintenance-copilot/actions/workflows/ci.yml)
+
 An AI-powered predictive maintenance platform for industrial equipment (hydraulic
 pumps, motors, valves, fluid conveyance). Engineers upload sensor data and equipment
 manuals; the system detects anomalies, reasons over them with an LLM grounded in the
@@ -59,6 +61,21 @@ readouts and trend sparklines per machine.
 - Python 3.11 (`py -3.11`)
 - Node 20+
 - PostgreSQL (this project was set up against PostgreSQL 18 on **port 5433**)
+
+## Run with Docker (any OS)
+
+The whole stack — Postgres, Redis, the API, a Celery worker, the MLflow server, and the
+frontend — is defined in `docker-compose.yml`. From the project root:
+
+```bash
+# optional: export GROQ_API_KEY=...   (otherwise it runs in stub mode)
+docker compose up --build
+```
+
+Then open http://localhost:5173 (API at :8000, MLflow at :5000). Stop with
+`docker compose down` (add `-v` to also drop the data volumes).
+
+The sections below cover the native-Windows setup used during development.
 
 ## Setup
 

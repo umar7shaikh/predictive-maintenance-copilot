@@ -38,5 +38,6 @@ Databricks PySpark is a single implementation swap with no caller changes.
 - **Phase 4 — done.** Celery + Redis async jobs (`USE_CELERY`), a `SparkETLEngine`
   selectable via `ETL_ENGINE=spark` (Java + winutils), and a local MLflow tracking
   server. All optional; pandas + BackgroundTasks remain the default.
-- **Phase 5** — GitHub Actions CI (pytest + lint), Docker Compose for the full stack,
-  production Azure deployment + sample Power BI executive dashboard.
+- **Phase 5 — done.** GitHub Actions CI (backend pytest + frontend build on every push)
+  and a Docker Compose stack (Postgres, Redis, API, Celery worker, MLflow server,
+  frontend). Remaining: production Azure deployment + sample Power BI executive dashboard.
