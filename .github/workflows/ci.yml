@@ -41,3 +41,46 @@ jobs:
         run: |
           npm ci
           npm run build
+
+  gateway:
+    name: Gateway (Go)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache-dependency-path: gateway/go.mod
+      - name: Format check
+        working-directory: gateway
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+      - name: Vet
+        working-directory: gateway
+        run: go vet ./...
+      - name: Test
+        working-directory: gateway
+        run: go test ./...
+      - name: Build
+        working-directory: gateway
+        run: CGO_ENABLED=0 go build -o gateway .
+
+  edge-agent:
+    name: Edge agent (Rust)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Format check
+        working-directory: edge-agent
+        run: cargo fmt --check
+      - name: Clippy
+        working-directory: edge-agent
+        run: cargo clippy --release -- -D warnings
+      - name: Test
+        working-directory: edge-agent
+        run: cargo test
+      - name: Build
+        working-directory: edge-agent
+        run: cargo build --release

@@ -17,6 +17,7 @@ from app.api import (
     detection,
     documents,
     export,
+    ingest,
     logs,
     machines,
     org,
@@ -51,6 +52,6 @@ def health():
 
 for module in (
     auth, datasets, machines, recommendations, documents, chat, logs, export, admin,
-    detection, carbon, reports, org, audit,
+    detection, carbon, reports, org, audit, ingest,
 ):
     app.include_router(module.router)

@@ -1,0 +1,3 @@
+/target
+edge_buffer.jsonl
+# Cargo.lock IS committed — best practice for a binary (reproducible builds).

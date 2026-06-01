@@ -1,16 +1,17 @@
 import { NavLink, Outlet } from "react-router-dom";
 import clsx from "clsx";
 import { useAuth } from "../lib/auth.jsx";
+import { LANGUAGES, getLang, setLang, t } from "../lib/i18n.js";
 
 const links = [
-  { to: "/", label: "Fleet", end: true },
-  { to: "/upload", label: "Data" },
-  { to: "/tuning", label: "Detection" },
-  { to: "/carbon", label: "Carbon" },
-  { to: "/reports", label: "Reports" },
-  { to: "/assistant", label: "Copilot" },
-  { to: "/logs", label: "Log" },
-  { to: "/org", label: "Org" },
+  { to: "/", key: "nav.fleet", end: true },
+  { to: "/upload", key: "nav.data" },
+  { to: "/tuning", key: "nav.detection" },
+  { to: "/carbon", key: "nav.carbon" },
+  { to: "/reports", key: "nav.reports" },
+  { to: "/assistant", key: "nav.copilot" },
+  { to: "/logs", key: "nav.log" },
+  { to: "/org", key: "nav.org" },
 ];
 
 export default function Layout() {
@@ -39,16 +40,26 @@ export default function Layout() {
                     )
                   }
                 >
-                  {l.label}
+                  {t(l.key)}
                 </NavLink>
               ))}
             </nav>
           </div>
           <div className="flex items-center gap-3 text-xs text-faint">
+            <select
+              value={getLang()}
+              onChange={(e) => setLang(e.target.value)}
+              className="mono rounded border border-hair bg-panel2 px-1.5 py-1 text-[11px] text-muted outline-none focus:border-faint"
+              title="Language"
+            >
+              {LANGUAGES.map((l) => (
+                <option key={l.code} value={l.code}>{l.label}</option>
+              ))}
+            </select>
             <span className="mono">{user?.email}</span>
             <span className="text-hair">|</span>
             <button onClick={logout} className="uppercase tracking-wider hover:text-fg">
-              Sign&nbsp;out
+              {t("app.signout")}
             </button>
           </div>
         </div>

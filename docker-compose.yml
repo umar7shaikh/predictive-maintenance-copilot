@@ -67,6 +67,20 @@ services:
     depends_on: [backend]
     ports: ["5173:80"]
 
+  # Sensor ingestion gateway (Phase 9). Forwards batched telemetry to the API.
+  # It needs a bearer token to forward: create an operator+ user, then set
+  # INGEST_TOKEN in your env/.env before `docker compose up`. Without it the
+  # gateway runs but forwards are rejected (401) until a token is provided.
+  gateway:
+    build: ./gateway
+    environment:
+      GATEWAY_ADDR: ":8080"
+      API_BASE: http://backend:8000
+      API_TOKEN: ${INGEST_TOKEN:-}
+      WORKERS: "4"
+    depends_on: [backend]
+    ports: ["8080:8080"]
+
 volumes:
   pgdata:
   mlruns:

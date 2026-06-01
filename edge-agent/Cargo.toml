@@ -1,0 +1,19 @@
+[package]
+name = "pdm-edge-agent"
+version = "0.1.0"
+edition = "2021"
+description = "On-floor edge agent: reads sensors, buffers offline, syncs to the gateway when online."
+
+[dependencies]
+# Plain-HTTP only (default TLS backend disabled): the edge→gateway hop runs on the
+# local factory network, and TLS terminates at the gateway/API ingress. This keeps the
+# agent pure-Rust (no C compiler needed) and the binary tiny. For a direct HTTPS target,
+# re-enable a TLS feature (e.g. "tls") — that needs gcc/MinGW or MSVC at build time.
+ureq = { version = "2.9", default-features = false, features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = "z"   # optimize for small binary — runs on cheap industrial hardware
+lto = true
+strip = true
