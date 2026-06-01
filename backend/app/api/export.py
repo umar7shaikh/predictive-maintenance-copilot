@@ -7,8 +7,9 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import Anomaly, Machine, SensorReading, User
+from app.models import Anomaly, EmissionRecord, Machine, SensorReading, User
 from app.security import get_current_user
+from app.services import carbon
 
 router = APIRouter(prefix="/api/export", tags=["export"])
 
@@ -60,3 +61,25 @@ def export_anomalies(db: Session = Depends(get_db), current: User = Depends(get_
         for a in anomalies
     )
     return _csv_response(header, rows, "pdm_anomalies.csv")
+
+
+@router.get("/sustainability.csv")
+def export_sustainability(db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    """Flat emission-inventory rows for Power BI / ESG reporting, each traceable to
+    its activity data and the emission factor used."""
+    carbon.seed_factors_if_empty(db)
+    carbon.recompute_emissions(db)
+    header = [
+        "scope", "source_type", "activity_type", "activity_amount", "activity_unit",
+        "kgco2e", "cost", "currency", "period_start", "period_end", "data_quality", "origin",
+    ]
+    records = db.query(EmissionRecord).order_by(EmissionRecord.period_start.asc()).all()
+    rows = (
+        [
+            r.scope, r.source_type, r.activity_type, round(r.activity_amount, 3), r.activity_unit,
+            round(r.kgco2e, 3), r.cost, r.currency,
+            r.period_start.isoformat(), r.period_end.isoformat(), r.data_quality, r.origin,
+        ]
+        for r in records
+    )
+    return _csv_response(header, rows, "pdm_sustainability.csv")

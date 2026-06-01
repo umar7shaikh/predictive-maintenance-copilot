@@ -6,6 +6,7 @@ const links = [
   { to: "/", label: "Fleet", end: true },
   { to: "/upload", label: "Data" },
   { to: "/tuning", label: "Detection" },
+  { to: "/carbon", label: "Carbon" },
   { to: "/assistant", label: "Copilot" },
   { to: "/logs", label: "Log" },
 ];

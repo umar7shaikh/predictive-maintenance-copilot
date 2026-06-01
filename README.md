@@ -42,6 +42,12 @@ readouts and trend sparklines per machine.
    marked actioned with notes (compliance / warranty audit trail).
 8. **Power BI export** — clean CSVs formatted for Power BI ingestion; data model in
    [`docs/powerbi.md`](docs/powerbi.md).
+9. **Carbon & energy (Phase 6)** — turns energy use into a traceable CO₂ inventory:
+   Scope 1 (diesel gensets) + Scope 2 (grid electricity) from utility bills / fuel logs,
+   versioned regional emission factors, and an energy-waste → CO₂ → cost estimate that links
+   each anomaly to money and carbon. Foundation for the regulatory report generator
+   (CBAM, BRSR, ISSB, SA carbon tax) — see [`docs/product-vision.md`](docs/product-vision.md),
+   [`docs/esg.md`](docs/esg.md), and [`docs/competitive-landscape.md`](docs/competitive-landscape.md).
 
 ## Tech stack
 
@@ -53,8 +59,11 @@ readouts and trend sparklines per machine.
 | MLOps | MLflow (local file store) |
 | RAG | ChromaDB + all-MiniLM-L6-v2 (ONNX) |
 | LLM | Groq (Llama 3.1) with a deterministic stub fallback |
-| Frontend | React + Vite + Tailwind + Recharts |
+| Frontend | React + Vite + Tailwind + Recharts (i18n: EN/HI/MS/TH) |
 | Async (later) | FastAPI BackgroundTasks now; Celery + Redis/Memurai in Phase 4 |
+| Ingestion gateway | **Go** (stdlib) — high-concurrency telemetry front door (`gateway/`) |
+| Edge agent | **Rust** — on-floor agent with offline buffering + sync (`edge-agent/`) |
+| Carbon / ESG | Scope 1/2 engine, regulatory reports (ISSB/CBAM/BRSR), hash-chained audit ledger |
 
 ## Prerequisites (Windows)
 
@@ -196,6 +205,9 @@ Redis → Azure Cache for Redis, pandas → Spark on Azure Databricks.
 5. **AI Copilot** → ask "Is PUMP-001 safe to keep running?" → get a cited verdict.
 6. Save it → **Maintenance Log** → mark actioned with a note.
 7. Export Power BI CSVs from `/api/export/sensors.csv` and `/api/export/anomalies.csv`.
+8. **Carbon** → seed sample energy data with
+   `python scripts\seed_carbon.py` (after `reset_and_seed.py`), then open the **Carbon** tab:
+   Scope 1/2 totals, avoidable energy waste per machine, and `/api/export/sustainability.csv`.
 
 ## Configuration notes
 

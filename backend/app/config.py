@@ -49,6 +49,19 @@ class Settings(BaseSettings):
     java_home: str = ""
     hadoop_home: str = ""
 
+    # --- Phase 6: energy & carbon defaults ---
+    # Default region (selects the grid emission factor) and currency for new records.
+    default_region: str = "IN"
+    default_currency: str = "INR"
+    # Fallback electricity tariff (currency per kWh) for savings estimates when no
+    # utility bill is available to derive an effective tariff from.
+    electricity_tariff: float = 8.0
+    # Efficiency penalty (fraction of energy wasted) assumed per worst-severity bucket
+    # for a degrading machine. Conservative, clearly-labelled estimates.
+    waste_penalty_high: float = 0.08
+    waste_penalty_medium: float = 0.04
+    waste_penalty_monitor: float = 0.015
+
     # CORS
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 

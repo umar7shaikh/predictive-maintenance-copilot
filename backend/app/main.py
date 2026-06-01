@@ -10,6 +10,7 @@ from app.db import Base, engine
 from app.api import (
     admin,
     auth,
+    carbon,
     chat,
     datasets,
     detection,
@@ -46,6 +47,7 @@ def health():
 
 
 for module in (
-    auth, datasets, machines, recommendations, documents, chat, logs, export, admin, detection
+    auth, datasets, machines, recommendations, documents, chat, logs, export, admin,
+    detection, carbon,
 ):
     app.include_router(module.router)

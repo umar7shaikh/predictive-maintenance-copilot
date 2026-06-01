@@ -41,3 +41,20 @@ Databricks PySpark is a single implementation swap with no caller changes.
 - **Phase 5 — done.** GitHub Actions CI (backend pytest + frontend build on every push)
   and a Docker Compose stack (Postgres, Redis, API, Celery worker, MLflow server,
   frontend). Remaining: production Azure deployment + sample Power BI executive dashboard.
+- **Phase 6 — done.** Energy & carbon core: Scope 1 (diesel gensets) + Scope 2
+  (grid electricity) inventory from utility bills / fuel logs, versioned regional emission
+  factors, and an energy-waste → CO₂ → cost estimate. `Carbon` page +
+  `/api/export/sustainability.csv`. See [`esg.md`](esg.md).
+- **Phase 7 — done.** Multi-tenant groundwork: `Organization` + `Site`, user roles
+  (owner / manager / operator / read-only auditor), RBAC dependency, `Org` page. Additive —
+  single-deployment installs keep working. Remaining hardening: row-level tenant isolation
+  across all queries.
+- **Phase 8 — done.** Regulatory report generator: one engine, three templates
+  (ISSB/GHG, EU CBAM, India BRSR) over the audited carbon data, with methodology + factor
+  provenance, downloadable printable reports. `Reports` page.
+- **Phase 9 — done (Python verified; Go/Rust source shipped).** Go ingestion gateway +
+  Rust offline-buffering edge agent + Python `/api/ingest/readings`; i18n scaffold
+  (EN/HI/MS/TH) + on-prem notes. See [`phase9-edge.md`](phase9-edge.md).
+- **Phase 10 — done.** Append-only, hash-chained audit ledger (tamper-evident) over report
+  generation, with an integrity-verify endpoint and an Assurance panel — the trail BRSR Core
+  / CBAM assurance need.
