@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import User
+from app.models import Organization, Role, User
 from app.schemas import Token, UserCreate, UserOut
 from app.security import (
     create_access_token,
@@ -19,7 +19,25 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 def register(payload: UserCreate, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == payload.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
-    user = User(email=payload.email, hashed_password=hash_password(payload.password))
+
+    # Attach to a default organization (Phase 7). The very first user to register
+    # becomes the org owner; subsequent users join as operators. Multi-org signup
+    # and invitations come later — this keeps single-deployment installs working.
+    org = db.query(Organization).order_by(Organization.id.asc()).first()
+    if org is None:
+        org = Organization(name="Default Organization", country="IN")
+        db.add(org)
+        db.flush()
+        role = Role.OWNER
+    else:
+        role = Role.OWNER if db.query(User).count() == 0 else Role.OPERATOR
+
+    user = User(
+        email=payload.email,
+        hashed_password=hash_password(payload.password),
+        org_id=org.id,
+        role=role,
+    )
     db.add(user)
     db.commit()
     db.refresh(user)

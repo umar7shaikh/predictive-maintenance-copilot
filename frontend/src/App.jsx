@@ -10,6 +10,8 @@ import Assistant from "./pages/Assistant.jsx";
 import Logs from "./pages/Logs.jsx";
 import Tuning from "./pages/Tuning.jsx";
 import Sustainability from "./pages/Sustainability.jsx";
+import Reports from "./pages/Reports.jsx";
+import Org from "./pages/Org.jsx";
 
 function Protected({ children }) {
   const { token } = useAuth();
@@ -34,6 +36,8 @@ export default function App() {
         <Route path="upload" element={<Upload />} />
         <Route path="assistant" element={<Assistant />} />
         <Route path="carbon" element={<Sustainability />} />
+        <Route path="reports" element={<Reports />} />
+        <Route path="org" element={<Org />} />
         <Route path="tuning" element={<Tuning />} />
         <Route path="logs" element={<Logs />} />
       </Route>

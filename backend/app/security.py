@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.db import get_db
-from app.models import User
+from app.models import Role, User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
@@ -55,3 +55,20 @@ def get_current_user(
     if user is None:
         raise credentials_exc
     return user
+
+
+def require_role(min_role: str):
+    """Dependency factory: require at least ``min_role`` and block read-only roles
+    (auditor) from write actions. Use on mutating endpoints, e.g.
+    ``Depends(require_role(Role.MANAGER))``.
+    """
+    needed = Role.RANK.get(min_role, 99)
+
+    def _dep(current: User = Depends(get_current_user)) -> User:
+        if current.role in Role.READ_ONLY:
+            raise HTTPException(status_code=403, detail="Read-only role cannot modify data")
+        if Role.RANK.get(current.role, 0) < needed:
+            raise HTTPException(status_code=403, detail=f"Requires role: {min_role}")
+        return current
+
+    return _dep

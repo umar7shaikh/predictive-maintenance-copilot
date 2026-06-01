@@ -9,6 +9,7 @@ from app.config import settings
 from app.db import Base, engine
 from app.api import (
     admin,
+    audit,
     auth,
     carbon,
     chat,
@@ -18,7 +19,9 @@ from app.api import (
     export,
     logs,
     machines,
+    org,
     recommendations,
+    reports,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -48,6 +51,6 @@ def health():
 
 for module in (
     auth, datasets, machines, recommendations, documents, chat, logs, export, admin,
-    detection, carbon,
+    detection, carbon, reports, org, audit,
 ):
     app.include_router(module.router)

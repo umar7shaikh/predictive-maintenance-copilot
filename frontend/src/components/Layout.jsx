@@ -7,8 +7,10 @@ const links = [
   { to: "/upload", label: "Data" },
   { to: "/tuning", label: "Detection" },
   { to: "/carbon", label: "Carbon" },
+  { to: "/reports", label: "Reports" },
   { to: "/assistant", label: "Copilot" },
   { to: "/logs", label: "Log" },
+  { to: "/org", label: "Org" },
 ];
 
 export default function Layout() {
